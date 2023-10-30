@@ -1,14 +1,4 @@
-from langchain.docstore.document import Document
-from langchain.document_loaders.base import BaseLoader
-from langchain.document_loaders import UnstructuredHTMLLoader, OnlinePDFLoader
-from langchain.document_loaders.csv_loader import CSVLoader
-from langchain import PromptTemplate
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores.faiss import FAISS
-from langchain.document_loaders import WebBaseLoader
-from .Ngram import AddAlphaSmooth
-
+# import supporting packages and modules
 from abc import ABC
 import yaml
 import os
@@ -16,10 +6,21 @@ import tempfile
 import requests
 from urllib.parse import urlparse
 from typing import List
-from collections import Counter
-import math
 import json
 import re
+
+# import langchain modules
+from langchain.docstore.document import Document
+from langchain.document_loaders.base import BaseLoader
+from langchain.document_loaders import OnlinePDFLoader
+from langchain import PromptTemplate
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores.faiss import FAISS
+from langchain.document_loaders import WebBaseLoader
+
+# import puzzle-knowledge-sdk modules
+from .Ngram import AddAlphaSmooth
 
 class GloLoader(BaseLoader, ABC):
     """Loader class for `.glo` files.
@@ -261,7 +262,7 @@ class GloLoader(BaseLoader, ABC):
             raise ValueError(f"Concept ranking failed: {e}")
     
     @staticmethod
-    def transform(query: str, documents: List[Document], header: str=None, task: str=None, rank_function=None, additional_args: dict={}, max_width: int=2048):
+    def transform(query: str, documents: List[Document], header: str=None, task: str=None, rank_function=None, additional_args: dict={}):
         if header is None or header == "":
             # glo name
             glo_name = ""
@@ -271,8 +272,12 @@ class GloLoader(BaseLoader, ABC):
                     if glo_name != "":
                         break
             header = f"GLOSSARY: {glo_name}"
+            
         if task is None or task == "":
             task = "TASK: This is a glossary of concepts for your reference throughout this conversation. You should prioritize this information when answering any questions asked by the user."
+            
+        max_width = additional_args.get("max_width", 1024)
+        
         if rank_function is None:
             def fn(documents, max_width):
                 context = "CONCEPTS: \n"
